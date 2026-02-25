@@ -9,7 +9,7 @@ interface FormFieldProps<T extends FieldValues>{
     name : Path<T>;
     label : string;
     placeholder ? : string;
-    type ?: 'text' | 'email' | 'file'
+    type ?: 'text' | 'email' | 'file' | 'password'
 
 }
 
