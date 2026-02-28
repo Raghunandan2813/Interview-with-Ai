@@ -12,16 +12,18 @@ import { createGoogleGenerativeAI } from "@ai-sdk/google";
 
 
 export async function POST(request: Request) {
-  try {
-    const { type, role, level, techstack, amount, userid } =
+  const { type, role, level, techstack, amount, userid } =
       await request.json();
 
+  try {
+    
     if (!role || !level || !amount) {
       return Response.json(
         { success: false, error: "Missing required fields" },
         { status: 400 }
       );
     }
+       
 
     const googleProvider = createGroq({
       apiKey: process.env.GROQ_API_KEY!,

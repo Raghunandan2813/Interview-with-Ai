@@ -4,13 +4,16 @@
 import { messaging } from "firebase-admin";
 import { success } from "zod";
 import { db, auth } from "@/firebase/admin";
-const ONE_WEEK = 60*60*24*7;
+
 import { cookies } from "next/headers";
 import { Collection } from "radix-ui/internal";
 //import {  DocumentData } from "firebase-admin/firestore";
 //import { User } from "firebase/auth";
 
-import { CollectionReference, DocumentData } from "firebase/firestore";
+import { CollectionReference, doc, DocumentData, limit } from "firebase/firestore";
+
+
+const ONE_WEEK = 60*60*24*7;
 //import { UserRecord } from "firebase-admin/auth";
 export async function signUp(params: SignUpParams){
     const {uid , name , email} = params;
@@ -116,3 +119,22 @@ export async function isAuthenticated(){
 }
 
 
+export async function getInterviewsByUserId(userId: string): Promise<Interview[] | null>{
+            const interviews = await db.collection('interviews').where('userId', '==' , userId).orderBy('createdAt', 'desc').get();
+            
+            return interviews.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data()
+
+            })) as Interview[];
+}
+export async function getLatestInterviews(params: GetLatestInterviewsParams) : Promise<Interview[] | null>{
+                    const {userId, limit = 20} = params;
+            const interviews = await db.collection('interviews').orderBy('createdAt', 'desc').where('finalized', '==', true).where('userId', '!=' , userId).limit(limit).get();
+
+            return interviews.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data()
+
+            })) as Interview[];
+}
