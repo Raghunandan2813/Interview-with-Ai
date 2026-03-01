@@ -143,7 +143,7 @@ const AuthForm = ({ type }: AuthFormProps) => {
             href={!isSignin ? "/sign-in" : "/sign-up"}
             className="font-semibold text-primary-200 hover:text-primary-100 ml-1 transition-colors"
           >
-            {!isSignin ? "Sign up" : "Sign in"}
+            {!isSignin ? "Sign in" : "Sign up"}
           </Link>
         </p>
       </div>
