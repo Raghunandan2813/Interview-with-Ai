@@ -2,6 +2,7 @@ import dayjs from "dayjs";
 import Link from "next/link";
 import Image from "next/image";
 import { redirect } from "next/navigation";
+import jsPDF from "jspdf";
 
 import {
   getFeedbackByInterviewId,
@@ -9,6 +10,10 @@ import {
 } from  "@/lib/action/general.action";
 import { Button } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/action/auth.action";
+
+
+
+
 
 const Feedback = async ({ params }: RouteParams ) => {
   const { id } = await params;
@@ -95,6 +100,9 @@ const Feedback = async ({ params }: RouteParams ) => {
           <Link href={`/interview/${id}`} className="flex w-full justify-center items-center py-2.5">
             Retake interview
           </Link>
+        </Button>
+        <Button className="btn-secondary flex-1">
+          Download your feedback
         </Button>
       </div>
     </section>
