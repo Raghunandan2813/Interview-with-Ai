@@ -127,7 +127,7 @@ const handleDisconnect = async ()=>{
         <div className="card-interviewer">
           <div className="avatar">
             <Image
-              src="/robots.jpg"
+              src="/roboo.png"
               alt="AI"
               width={64}
               height={54}
