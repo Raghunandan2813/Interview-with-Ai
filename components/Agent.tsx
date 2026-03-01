@@ -74,7 +74,7 @@ const Agent = ({userName , userId, type, interviewId, questions} : AgentProps) =
     transcript: messages
   })
   if(success && id){
-    router.push('/interview/${}/feedback')
+    router.push(`/interview/${interviewId}/feedback`)
   }else{
     console.log('Error saving feedback');
     router.push('/');
