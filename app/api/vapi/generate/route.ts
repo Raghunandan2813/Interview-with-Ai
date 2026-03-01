@@ -1,22 +1,28 @@
 
 import { getRandomInterviewCover } from "@/lib/utils";
 import { db } from "@/firebase/admin";
-import { GoogleAuthProvider } from "firebase/auth";
-import { generateText} from 'ai'
-import {createGroq, groq} from '@ai-sdk/groq'
+import { generateText } from "ai";
+import { createGroq, groq } from "@ai-sdk/groq";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
-
-
+import { getCurrentUser } from "@/lib/action/auth.action";
 
 
 
 
 export async function POST(request: Request) {
-  const { type, role, level, techstack, amount, userid } =
-      await request.json();
+  const body = await request.json();
+  const { type, role, level, techstack, amount, userid } = body;
+
+  const url = new URL(request.url);
+  const useridFromQuery = url.searchParams.get("userid");
 
   try {
-    
+    const user = await getCurrentUser();
+    const invalidUserIds = ["", "user", "{{userId}}", "{{vars.userId}}"];
+    const bodyUseridValid = userid && typeof userid === "string" && !invalidUserIds.includes(userid);
+    const resolvedUserId =
+      user?.id ?? useridFromQuery ?? (bodyUseridValid ? userid : "");
+
     if (!role || !level || !amount) {
       return Response.json(
         { success: false, error: "Missing required fields" },
@@ -24,13 +30,12 @@ export async function POST(request: Request) {
       );
     }
        
-
-    const googleProvider = createGroq({
-      apiKey: process.env.GROQ_API_KEY!,
-    });
-
+    const groqProvider = createGroq({
+  apiKey: process.env.GROQ_API_KEY!,
+});
+  
     const { text } = await generateText({
-      model: groq("llama-3.3-70b-versatile"),
+      model: groqProvider("llama-3.3-70b-versatile"),
       prompt: `Prepare questions for a job interview.
         The job role is ${role}.
         The job experience level is ${level}.
@@ -63,7 +68,7 @@ export async function POST(request: Request) {
       level,
       techstack: techstack ? techstack.split(",") : [],
       questions: parsedQuestions,
-      userId: userid,
+      userId: resolvedUserId,
       finalized: true,
       coverImage: getRandomInterviewCover(),
       createdAt: new Date().toISOString(),
