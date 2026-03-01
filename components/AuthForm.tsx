@@ -94,58 +94,56 @@ const AuthForm = ({ type }: AuthFormProps) => {
   }
   const isSignin = type === "sign-in";
   return (
-    <div className="card-border lg:min-w-[566px] flex flex-col px-10 justify-center">
-      <div className="flex flex-col gap-6 fill-card-foreground py-14 px-10">
-        <div className="flex flex-col items-center gap-2 justify-center">
-          <Image src="/logo.svg" alt="logo" height={32} width={38} />
-          <h2>Boost Your Prep With AI</h2>
+    <div className="card-border lg:min-w-[480px] flex flex-col overflow-hidden">
+      <div className="flex flex-col gap-6 fill-card-foreground py-10 px-8">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <Image src="/logo.svg" alt="logo" height={36} width={42} className="shrink-0" />
+          <p className="text-sm font-medium text-primary-200">Boost Your Prep With AI</p>
         </div>
 
-        <h2 className="text-xl font-bold mb-4 items-center">
-          {type === "sign-in" ? "Sign In" : "Sign Up" }
+        <h2 className="text-2xl font-semibold text-light-100">
+          {type === "sign-in" ? "Sign in" : "Create account"}
         </h2>
 
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-4 w-full space-6 mt-4 form"
+            className="w-full mt-2 form"
           >
             {!isSignin && (
               <FormField
                 control={form.control}
                 name="name"
                 label="Name"
-                
-                placeholder="Your Name"
+                placeholder="Your name"
               />
             )}
             <FormField
-                control={form.control}
-                name="email"
-                label="Email"
-                
-                placeholder="Your Email"
-              />
-           <FormField
-                control={form.control}
-                name="password"
-                label="Password"
+              control={form.control}
+              name="email"
+              label="Email"
+              placeholder="you@example.com"
+            />
+            <FormField
+              control={form.control}
+              name="password"
+              label="Password"
               type="password"
-                placeholder="Your Password"
-              />
+              placeholder="••••••••"
+            />
 
-            <Button type="submit" className="w-full">
-              {type === "sign-in" ? "Login" : "Create Account"}
+            <Button type="submit" className="w-full mt-2">
+              {type === "sign-in" ? "Sign in" : "Create account"}
             </Button>
           </form>
         </Form>
-        <p className="text-center">
-          {isSignin ? "No account yet?" : "Have and account already?"}
+        <p className="text-center text-sm text-light-400 pt-1">
+          {isSignin ? "No account yet?" : "Already have an account?"}
           <Link
             href={!isSignin ? "/sign-in" : "/sign-up"}
-            className="font-bold text-user-primary ml-1"
+            className="font-semibold text-primary-200 hover:text-primary-100 ml-1 transition-colors"
           >
-            {!isSignin ? "Sign in" : "Sign up"}
+            {!isSignin ? "Sign up" : "Sign in"}
           </Link>
         </p>
       </div>

@@ -19,54 +19,56 @@ import { getInterviewsByUserId, getLatestInterviews } from '@/lib/action/general
  
   return (
     <>
-    
-    <section className='card-cta'>
-    <div className='flex flex-col gap-6 max-w-lg'>
-    <h2>Elevate your interview preparation with AI assistance.</h2>
-    <p className='text-lg'>
-      Experience real interview scenarios and get feedback instantly.
-    </p>
-    <Button asChild className='btn-primary max-sm:w-full'>
-      <Link href = "/interview">Start your Interview</Link>
-    </Button>
-    </div>
-    <Image src="/robot.png" alt="robo-dude" width={400} height = {400} className='max-sm:hidden'  ></Image>
-    </section>
-    <section className='flex flex-col gap-6 mt-8'>
-    <h2>Your Interviews</h2>
-    <div className='interviews-section'>
-      { hasPastInterviews ? (
-        userInterviews?.map((interview)=>(
-       <InterviewCard  {...interview} key={interview.id}/>
-        ))):(
-           <p>You haven&apos;t taken any interviews yet</p>
-        )   
-    
-        
-      }
-      
-    </div>
-    </section>
+      <section className="card-cta">
+        <div className="flex flex-col gap-5 max-w-xl">
+          <h2 className="text-2xl font-bold text-light-100 tracking-tight max-sm:text-xl">
+            Elevate your interview preparation with AI assistance.
+          </h2>
+          <p className="text-light-400 text-base leading-relaxed">
+            Experience real interview scenarios and get feedback instantly.
+          </p>
+          <Button asChild className="btn-primary max-sm:w-full w-fit">
+            <Link href="/interview">Start your Interview</Link>
+          </Button>
+        </div>
+        <Image
+          src="/robot.png"
+          alt="AI assistant"
+          width={360}
+          height={360}
+          className="max-sm:hidden object-contain"
+        />
+      </section>
 
-    <section className='flex flex-col gap-6 mt-8'>
-    <h2>Take an interview</h2>
+      <section className="flex flex-col gap-5">
+        <h2 className="text-xl font-semibold text-light-100">Your Interviews</h2>
+        <div className="interviews-section">
+          {hasPastInterviews ? (
+            userInterviews?.map((interview) => (
+              <InterviewCard {...interview} key={interview.id} />
+            ))
+          ) : (
+            <p className="text-light-600 rounded-xl border border-white/10 bg-dark-200/50 px-6 py-8 text-center">
+              You haven&apos;t taken any interviews yet.
+            </p>
+          )}
+        </div>
+      </section>
 
-    <div className='flex flex-col gap-6 mt-8'>
-      { hasUpcomingInterviews ? (
-        latestInterviews?.map((interview)=>(
-       <InterviewCard  {...interview} key={interview.id}/>
-        ))):(
-           <p>There are no new interviews available.</p>
-        )   
-    
-        
-      }
-    </div>
-    
-    
-    </section>
-    
-    
+      <section className="flex flex-col gap-5 mt-4">
+        <h2 className="text-xl font-semibold text-light-100">Take an interview</h2>
+        <div className="interviews-section">
+          {hasUpcomingInterviews ? (
+            latestInterviews?.map((interview) => (
+              <InterviewCard {...interview} key={interview.id} />
+            ))
+          ) : (
+            <p className="text-light-600 rounded-xl border border-white/10 bg-dark-200/50 px-6 py-8 text-center">
+              There are no new interviews available.
+            </p>
+          )}
+        </div>
+      </section>
     </>
   )
 }

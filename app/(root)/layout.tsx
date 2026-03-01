@@ -8,17 +8,18 @@ const RootLayout = async ({children} : {children : ReactNode}) => {
   const isUserAuthenticated = await isAuthenticated();
   if(!isUserAuthenticated) redirect('/sign-in')
   return (
-    <div className='root-layout'>
-      <nav>
-        <Link href="/" className='flex items-center gap-2'>
-
-          <Image src='/logo.svg' alt='logo' width= {38}  height={32} />
-        <h2 className='text-primary-100'>InterAi</h2>
-     
-      </Link>
-       </nav>
+    <div className="root-layout">
+      <nav className="flex items-center justify-between w-full pb-2 border-b border-white/10">
+        <Link
+          href="/"
+          className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-white/5"
+        >
+          <Image src="/logo.svg" alt="logo" width={38} height={32} className="shrink-0" />
+          <span className="text-lg font-semibold text-primary-100 tracking-tight">InterAi</span>
+        </Link>
+      </nav>
       {children}
-      </div>
+    </div>
   )
 }
 

@@ -1,7 +1,7 @@
 import Agent from "@/components/Agent";
 import DisplayTechIcons from "@/components/DisplayTechIcons";
 import { getCurrentUser } from "@/lib/action/auth.action";
-import { getInterviewsById } from "@/lib/action/general.action";
+import { getInterviewById } from "@/lib/action/general.action";
 import { getRandomInterviewCover } from "@/lib/utils";
 import Image from "next/image";
 import { redirect } from "next/navigation";
@@ -10,38 +10,39 @@ import React from "react";
 const Page = async ({ params }: RouteParams) => {
   const { id } = await params;
   const user = await getCurrentUser();
-  const interview = await getInterviewsById(id);
+  const interview = await getInterviewById(id);
   if (!interview) redirect("/");
 
   return (
-    <>
-      <div className="flex flex-row gap-4 justify-between">
-        <div className="flex flex-row gap-4 items-center max:sm:flex-col">
-          <div className="flex flex-row gap-4 items-center">
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-row flex-wrap gap-4 items-center justify-between p-4 rounded-2xl border border-white/10 bg-dark-200/50">
+        <div className="flex flex-row gap-4 items-center flex-wrap">
+          <div className="flex flex-row gap-3 items-center">
             <Image
               src={getRandomInterviewCover()}
-              alt="cover-image"
-              width={40}
-              height={40}
-              className="rounded-full object-cover size-[40px]"
+              alt="cover"
+              width={44}
+              height={44}
+              className="rounded-xl object-cover size-11 ring-2 ring-white/10"
             />
-            <h3 className="capitalize">{interview.role} Interview</h3>
+            <h3 className="capitalize text-lg font-semibold text-light-100">
+              {interview.role} Interview
+            </h3>
           </div>
-
           <DisplayTechIcons techStack={interview.techstack} />
         </div>
-
-        <p className="bg-dark-200 px-4 py-2 rounded-lg h-fit capitalize">
+        <span className="px-3 py-1.5 rounded-lg bg-primary-300/20 text-primary-100 text-sm font-medium capitalize border border-primary-200/30">
           {interview.type}
-        </p>
+        </span>
       </div>
-      <Agent 
-      userName={user?.name}
-      userId= {user?.id}
-      interviewId={id}
-      type='interview'
-      questions={interview.questions}/>
-    </>
+      <Agent
+        userName={user?.name || ""}
+        userId={user?.id}
+        interviewId={id}
+        type="interview"
+        questions={interview.questions}
+      />
+    </div>
   );
 };
 
