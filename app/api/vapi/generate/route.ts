@@ -23,6 +23,13 @@ export async function POST(request: Request) {
     const resolvedUserId =
       user?.id ?? useridFromQuery ?? (bodyUseridValid ? userid : "");
 
+    if (!resolvedUserId) {
+      return Response.json(
+        { success: false, error: "User ID is required. Pass userid in the request body or sign in so the server can identify you." },
+        { status: 400 }
+      );
+    }
+
     if (!role || !level || !amount) {
       return Response.json(
         { success: false, error: "Missing required fields" },
@@ -74,9 +81,9 @@ export async function POST(request: Request) {
       createdAt: new Date().toISOString(),
     };
 
-    await db.collection("interviews").add(interview);
+    const docRef = await db.collection("interviews").add(interview);
 
-    return Response.json({ success: true }, { status: 200 });
+    return Response.json({ success: true, interviewId: docRef.id }, { status: 200 });
 
   } catch (error) {
     console.error(error);

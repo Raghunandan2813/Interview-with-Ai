@@ -1,11 +1,10 @@
 "use server"
 import { feedbackSchema } from "@/constants";
 import { db } from "@/firebase/admin";
+import { getCurrentUser } from "@/lib/action/auth.action";
+import { getRandomInterviewCover } from "@/lib/utils";
 import { groq , createGroq} from "@ai-sdk/groq";
-import {  generateObject, generateText} from "ai";
-import { zodSchema } from "ai";
-import { ProviderId } from "firebase/auth";
-import {z} from "zod"
+import { generateText } from "ai";
 
 
 export async function getInterviewsByUserId(
@@ -41,9 +40,76 @@ export async function getLatestInterviews(
 }
 
 export async function getInterviewById(id: string): Promise<Interview | null> {
-  const interview = await db.collection("interviews").doc(id).get();
+  const doc = await db.collection("interviews").doc(id).get();
+  if (!doc.exists) return null;
+  return { id: doc.id, ...doc.data() } as Interview;
+}
 
-  return interview.data() as Interview | null;
+export type CreateInterviewParams = {
+  role: string;
+  type: string;
+  level: string;
+  techstack: string;
+  amount: number;
+};
+
+export async function createInterview(
+  params: CreateInterviewParams
+): Promise<{ success: true; interviewId: string } | { success: false; error: string }> {
+  try {
+    const user = await getCurrentUser();
+    if (!user?.id) {
+      return { success: false, error: "You must be signed in to create an interview." };
+    }
+
+    const { role, type, level, techstack, amount } = params;
+    if (!role?.trim() || !level?.trim() || !amount || amount < 1) {
+      return { success: false, error: "Role, level, and amount are required." };
+    }
+
+    const groqProvider = createGroq({ apiKey: process.env.GROQ_API_KEY! });
+    const { text } = await generateText({
+      model: groqProvider("llama-3.3-70b-versatile"),
+      prompt: `Prepare questions for a job interview.
+        The job role is ${role}.
+        The job experience level is ${level}.
+        The tech stack used in the job is: ${techstack || "general"}.
+        The focus between behavioural and technical questions should lean towards: ${type || "mix"}.
+        The amount of questions required is: ${amount}.
+        Please return only the questions, without any additional text.
+        The questions are going to be read by a voice assistant so do not use "/" or "*" or any other special characters which might break the voice assistant.
+        Return the questions formatted like this:
+        ["Question 1", "Question 2", "Question 3"]
+
+        Thank you!`,
+    });
+
+    let parsedQuestions: string[] = [];
+    try {
+      parsedQuestions = JSON.parse(text);
+      if (!Array.isArray(parsedQuestions)) parsedQuestions = [];
+    } catch {
+      return { success: false, error: "Failed to generate valid questions. Please try again." };
+    }
+
+    const interview = {
+      role: role.trim(),
+      type: (type || "mix").trim(),
+      level: level.trim(),
+      techstack: techstack ? techstack.split(",").map((t) => t.trim()).filter(Boolean) : [],
+      questions: parsedQuestions,
+      userId: user.id,
+      finalized: true,
+      coverImage: getRandomInterviewCover(),
+      createdAt: new Date().toISOString(),
+    };
+
+    const docRef = await db.collection("interviews").add(interview);
+    return { success: true, interviewId: docRef.id };
+  } catch (e) {
+    console.error("Error creating interview", e);
+    return { success: false, error: "Failed to create interview. Please try again." };
+  }
 }
 
 export async function createFeedback(params: CreateFeedbackParams) {
@@ -57,41 +123,53 @@ export async function createFeedback(params: CreateFeedbackParams) {
       .join("");
       
 
-    const groqProvider = createGroq({
-  apiKey: process.env.GROQ_API_KEY!,
-});
-    const {object} = await generateObject({
-      model: groqProvider("llama-3.3-70b-versatile"),
-      schema :feedbackSchema,
-      system: `You are a professional interviewer analyzing a mock interview. Your task is to evaluate the candidate based on structured categories`,
-      prompt: `You are an AI interviewer analyzing a mock interview. Your task is to evaluate the candidate based on structured categories. Be thorough and detailed in your analysis. Don't be lenient with the candidate. If there are mistakes or areas for improvement, point them out.
-        Transcript:
-        ${formattedTranscript}
+    const groqProvider = createGroq({ apiKey: process.env.GROQ_API_KEY! });
 
-        Please score the candidate from 0 to 100 in the following areas. Do not add categories other than the ones provided:
-        - **Communication Skills**: Clarity, articulation, structured responses.
-        - **Technical Knowledge**: Understanding of key concepts for the role.
-        - **Problem-Solving**: Ability to analyze problems and propose solutions.
-        - **Cultural & Role Fit**: Alignment with company values and job role.
-        - **Confidence & Clarity**: Confidence in responses, engagement, and clarity.`,
-        
-            
-        
- 
-         });
-    
-         
-    const feedback = 
-      {
-        interviewId: interviewId,
-        userId: userId,
-        totalScore: object.totalScore,
-        categoryScore: object.categoryScores,
-        strengths: object.strengths,
-        areasForImporvement: object.areasForImprovement,
-        finalAssesment: object.finalAssessment,
-        createdAt: new Date().toISOString(),
-      };
+    const { text } = await generateText({
+      model: groqProvider("llama-3.3-70b-versatile"),
+      system: `You are a professional interviewer analyzing a mock interview. Your task is to evaluate the candidate based on structured categories. Respond with only valid JSON, no markdown or extra text.`,
+      prompt: `Analyze this mock interview transcript and score the candidate. Be thorough and detailed. Don't be lenient; if there are mistakes or areas for improvement, point them out.
+
+Transcript:
+${formattedTranscript}
+
+Score the candidate from 0 to 100 in exactly these 5 categories (use these exact names): "Communication Skills", "Technical Knowledge", "Problem Solving", "Cultural Fit", "Confidence and Clarity".
+
+Return a single JSON object with this exact structure (no other fields, no markdown code fence):
+{
+  "totalScore": <number 0-100>,
+  "categoryScores": [
+    { "name": "Communication Skills", "score": <number>, "comment": "<string>" },
+    { "name": "Technical Knowledge", "score": <number>, "comment": "<string>" },
+    { "name": "Problem Solving", "score": <number>, "comment": "<string>" },
+    { "name": "Cultural Fit", "score": <number>, "comment": "<string>" },
+    { "name": "Confidence and Clarity", "score": <number>, "comment": "<string>" }
+  ],
+  "strengths": ["<string>", ...],
+  "areasForImprovement": ["<string>", ...],
+  "finalAssessment": "<string>"
+}`,
+    });
+
+    const rawJson = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+    const parsed = JSON.parse(rawJson);
+    const result = feedbackSchema.safeParse(parsed);
+    if (!result.success) {
+      console.error("Feedback schema validation failed", result.error.flatten());
+      return { success: false };
+    }
+    const object = result.data;
+
+    const feedback = {
+      interviewId,
+      userId,
+      totalScore: object.totalScore,
+      categoryScore: object.categoryScores,
+      strengths: object.strengths,
+      areasForImporvement: object.areasForImprovement,
+      finalAssesment: object.finalAssessment,
+      createdAt: new Date().toISOString(),
+    };
       let feedbackRef;
 
       if(feedbackId){
@@ -127,5 +205,12 @@ export async function getFeedbackByInterviewId(
   if (querySnapshot.empty) return null;
 
   const feedbackDoc = querySnapshot.docs[0];
-  return { id: feedbackDoc.id, ...feedbackDoc.data() } as Feedback;
+  const data = feedbackDoc.data() as Record<string, unknown>;
+  return {
+    id: feedbackDoc.id,
+    ...data,
+    categoryScores: data.categoryScores ?? data.categoryScore,
+    areasForImprovement: data.areasForImprovement ?? data.areasForImporvement,
+    finalAssessment: data.finalAssessment ?? data.finalAssesment,
+  } as Feedback;
 }
