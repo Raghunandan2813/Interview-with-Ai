@@ -8,12 +8,17 @@ import { useState } from 'react';
 import { interviewer } from '@/constants';
 import {vapi} from '@/lib/vapi.sdk'
 import { createFeedback } from '@/lib/action/general.action';
+import { getAuth } from 'firebase-admin/auth';
+import { getCurrentUser } from '@/lib/action/auth.action';
+import { NextResponse } from 'next/server';
 enum CallStatus {
   INACTIVE = 'INACTIVE',
   CONNECTING = 'CONNECTING',
   ACTIVE = 'ACTIVE',
   FINISHED= 'FINISHED'
 }
+
+
 const mapRole = (role: string): SavedMessage['role'] => {
   switch(role) {
     case 'assistant': return 'assistance';
@@ -90,15 +95,15 @@ const Agent = ({userName , userId, type, interviewId, questions} : AgentProps) =
     }
    
   },[messages, callStatus, type , userId])
-
+  
   const handleCall = async () => {
     setCallStatus(CallStatus.CONNECTING);
     if(type==='generate'){
       await vapi.start(process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID!, {
-      variableValues :{
-        username: userName,
-      }
-    })
+        variableValues : {
+          userid: userId
+        }
+      })
   }else{
      let formattedQuestions ='';
      if(questions){
@@ -109,7 +114,15 @@ const Agent = ({userName , userId, type, interviewId, questions} : AgentProps) =
         questions: formattedQuestions
       }
      })
-  }
+     console.log(userId)
+      
+    
+    
+
+   }
+  
+
+
     }
     
 const handleDisconnect = async ()=>{
@@ -133,14 +146,14 @@ const handleDisconnect = async ()=>{
               height={54}
               className="object-cover rounded-xl"
             />
-            {isSpeaking && <span className="animate-speak" />}
-          </div>
+            {isSpeaking && <span className="animate-speak" />} 
+          </div> 
           <h3>AI Interview</h3>
         </div>
         <div className="card-border">
           <div className="card-content">
             <Image
-              src="/profile.svg"
+              src="/people.png"
               alt="You"
               width={120}
               height={120}

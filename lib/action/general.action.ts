@@ -1,11 +1,10 @@
-"use server"
+"use server";
 import { feedbackSchema } from "@/constants";
 import { db } from "@/firebase/admin";
 import { getCurrentUser } from "@/lib/action/auth.action";
 import { getRandomInterviewCover } from "@/lib/utils";
-import { groq , createGroq} from "@ai-sdk/groq";
+import { groq, createGroq } from "@ai-sdk/groq";
 import { generateText } from "ai";
-
 
 export async function getInterviewsByUserId(
   userId: string,
@@ -54,12 +53,18 @@ export type CreateInterviewParams = {
 };
 
 export async function createInterview(
-  params: CreateInterviewParams
-): Promise<{ success: true; interviewId: string } | { success: false; error: string }> {
+  params: CreateInterviewParams,
+): Promise<
+  { success: true; interviewId: string } | { success: false; error: string }
+> {
   try {
     const user = await getCurrentUser();
-    if (!user?.id) {
-      return { success: false, error: "You must be signed in to create an interview." };
+    console.log("Create interview user :", user);
+    if (!user) {
+      return {
+        success: false,
+        error: "You must be signed in to create an interview.",
+      };
     }
 
     const { role, type, level, techstack, amount } = params;
@@ -89,14 +94,22 @@ export async function createInterview(
       parsedQuestions = JSON.parse(text);
       if (!Array.isArray(parsedQuestions)) parsedQuestions = [];
     } catch {
-      return { success: false, error: "Failed to generate valid questions. Please try again." };
+      return {
+        success: false,
+        error: "Failed to generate valid questions. Please try again.",
+      };
     }
 
     const interview = {
       role: role.trim(),
       type: (type || "mix").trim(),
       level: level.trim(),
-      techstack: techstack ? techstack.split(",").map((t) => t.trim()).filter(Boolean) : [],
+      techstack: techstack
+        ? techstack
+            .split(",")
+            .map((t) => t.trim())
+            .filter(Boolean)
+        : [],
       questions: parsedQuestions,
       userId: user.id,
       finalized: true,
@@ -108,7 +121,10 @@ export async function createInterview(
     return { success: true, interviewId: docRef.id };
   } catch (e) {
     console.error("Error creating interview", e);
-    return { success: false, error: "Failed to create interview. Please try again." };
+    return {
+      success: false,
+      error: "Failed to create interview. Please try again.",
+    };
   }
 }
 
@@ -121,7 +137,6 @@ export async function createFeedback(params: CreateFeedbackParams) {
           `- ${sentence.role}: ${sentence.content}\n`,
       )
       .join("");
-      
 
     const groqProvider = createGroq({ apiKey: process.env.GROQ_API_KEY! });
 
@@ -151,11 +166,17 @@ Return a single JSON object with this exact structure (no other fields, no markd
 }`,
     });
 
-    const rawJson = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+    const rawJson = text
+      .replace(/^```(?:json)?\s*/i, "")
+      .replace(/\s*```$/i, "")
+      .trim();
     const parsed = JSON.parse(rawJson);
     const result = feedbackSchema.safeParse(parsed);
     if (!result.success) {
-      console.error("Feedback schema validation failed", result.error.flatten());
+      console.error(
+        "Feedback schema validation failed",
+        result.error.flatten(),
+      );
       return { success: false };
     }
     const object = result.data;
@@ -170,14 +191,14 @@ Return a single JSON object with this exact structure (no other fields, no markd
       finalAssesment: object.finalAssessment,
       createdAt: new Date().toISOString(),
     };
-      let feedbackRef;
+    let feedbackRef;
 
-      if(feedbackId){
-        feedbackRef = db.collection("feedback").doc(feedbackId)
-      }else{
-        feedbackRef = db.collection("feedback").doc();
-      }
-      
+    if (feedbackId) {
+      feedbackRef = db.collection("feedback").doc(feedbackId);
+    } else {
+      feedbackRef = db.collection("feedback").doc();
+    }
+
     await feedbackRef.set(feedback);
     return {
       success: true,
@@ -185,13 +206,12 @@ Return a single JSON object with this exact structure (no other fields, no markd
     };
   } catch (e) {
     console.log("Error saving feedback", e);
-    return {success : false}
+    return { success: false };
   }
 }
 
-
 export async function getFeedbackByInterviewId(
-  params: GetFeedbackByInterviewIdParams
+  params: GetFeedbackByInterviewIdParams,
 ): Promise<Feedback | null> {
   const { interviewId, userId } = params;
 

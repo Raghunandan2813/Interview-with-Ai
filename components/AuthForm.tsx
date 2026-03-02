@@ -130,6 +130,7 @@ const AuthForm = ({ type }: AuthFormProps) => {
               label="Password"
               type="password"
               placeholder="••••••••"
+              
             />
 
             <Button type="submit" className="w-full mt-2">

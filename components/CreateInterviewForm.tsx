@@ -7,7 +7,57 @@ import { Input } from "@/components/ui/input";
 import { createInterview } from "@/lib/action/general.action";
 import { toast } from "sonner";
 
-const ROLES = ["Frontend Developer", "Backend Developer", "Full Stack", "DevOps", "Data Engineer", "Product Manager"];
+const ROLES = ["Frontend Developer",
+  "Backend Developer",
+  "Full Stack Developer",
+  "Software Engineer",
+  "Web Developer",
+  "Mobile App Developer",
+  "Android Developer",
+  "iOS Developer",
+  "Game Developer",
+  "DevOps Engineer",
+  "Cloud Engineer",
+  "Cloud Architect",
+  "Site Reliability Engineer",
+  "Data Scientist",
+  "Data Analyst",
+  "Data Engineer",
+  "Machine Learning Engineer",
+  "AI Engineer",
+  "Deep Learning Engineer",
+  "Computer Vision Engineer",
+  "NLP Engineer",
+  "Cybersecurity Analyst",
+  "Security Engineer",
+  "Ethical Hacker",
+  "Penetration Tester",
+  "Blockchain Developer",
+  "Smart Contract Developer",
+  "Embedded Systems Engineer",
+  "Firmware Engineer",
+  "Robotics Engineer",
+  "AR VR Developer",
+  "UI UX Designer",
+  "Product Designer",
+  "Systems Engineer",
+  "Network Engineer",
+  "Database Administrator",
+  "Database Engineer",
+  "QA Engineer",
+  "Automation Test Engineer",
+  "Technical Support Engineer",
+  "IT Support Specialist",
+  "Solutions Architect",
+  "Software Architect",
+  "Technical Project Manager",
+  "Scrum Master",
+  "Business Intelligence Developer",
+  "Big Data Engineer",
+  "Research Scientist",
+  "Professor in Computer Science",
+  "Computer Graphics Engineer"
+];
 const LEVELS = ["Junior", "Mid", "Senior", "Lead"];
 const TYPES = ["Behavioural", "Technical", "Mix"];
 
@@ -61,6 +111,7 @@ export default function CreateInterviewForm() {
           onChange={(e) => setRole(e.target.value)}
           placeholder="e.g. Frontend Developer"
           list="roles-list"
+          required
         />
         <datalist id="roles-list">
           {ROLES.map((r) => (
@@ -102,6 +153,7 @@ export default function CreateInterviewForm() {
           value={techstack}
           onChange={(e) => setTechstack(e.target.value)}
           placeholder="e.g. React, Node, TypeScript"
+          required
         />
       </div>
 

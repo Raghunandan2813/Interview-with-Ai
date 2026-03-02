@@ -1,46 +1,17 @@
-
 import { getRandomInterviewCover } from "@/lib/utils";
 import { db } from "@/firebase/admin";
 import { generateText } from "ai";
 import { createGroq, groq } from "@ai-sdk/groq";
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { getCurrentUser } from "@/lib/action/auth.action";
-
-
 
 
 export async function POST(request: Request) {
-  const body = await request.json();
-  const { type, role, level, techstack, amount, userid } = body;
-
-  const url = new URL(request.url);
-  const useridFromQuery = url.searchParams.get("userid");
+  const { type, role, level, techstack, amount } = await request.json();
 
   try {
-    const user = await getCurrentUser();
-    const invalidUserIds = ["", "user", "{{userId}}", "{{vars.userId}}"];
-    const bodyUseridValid = userid && typeof userid === "string" && !invalidUserIds.includes(userid);
-    const resolvedUserId =
-      user?.id ?? useridFromQuery ?? (bodyUseridValid ? userid : "");
-
-    if (!resolvedUserId) {
-      return Response.json(
-        { success: false, error: "User ID is required. Pass userid in the request body or sign in so the server can identify you." },
-        { status: 400 }
-      );
-    }
-
-    if (!role || !level || !amount) {
-      return Response.json(
-        { success: false, error: "Missing required fields" },
-        { status: 400 }
-      );
-    }
-       
     const groqProvider = createGroq({
-  apiKey: process.env.GROQ_API_KEY!,
-});
-  
+      apiKey: process.env.GROQ_API_KEY!,
+    });
+
     const { text } = await generateText({
       model: groqProvider("llama-3.3-70b-versatile"),
       prompt: `Prepare questions for a job interview.
@@ -65,7 +36,7 @@ export async function POST(request: Request) {
     } catch {
       return Response.json(
         { success: false, error: "AI returned invalid JSON format" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -75,7 +46,7 @@ export async function POST(request: Request) {
       level,
       techstack: techstack ? techstack.split(",") : [],
       questions: parsedQuestions,
-      userId: resolvedUserId,
+      userId: "{{response.userId}",
       finalized: true,
       coverImage: getRandomInterviewCover(),
       createdAt: new Date().toISOString(),
@@ -83,10 +54,16 @@ export async function POST(request: Request) {
 
     const docRef = await db.collection("interviews").add(interview);
 
-    return Response.json({ success: true, interviewId: docRef.id }, { status: 200 });
-
+    return Response.json(
+      { success: true, interviewId: docRef.id },
+      { status: 200 },
+    );
   } catch (error) {
     console.error(error);
     return Response.json({ success: false }, { status: 500 });
   }
+}
+
+export async function Get() {
+  return Response.json({ success: true, data: "Thank you!" }, { status: 200 });
 }

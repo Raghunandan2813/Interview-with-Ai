@@ -21,7 +21,7 @@ const page = async () => {
 
       <div className="pt-4 border-t border-white/10">
         <h2 className="text-lg font-semibold text-light-100 mb-2">
-          Or use voice to generate (AI assistant)
+          Generate via Voice (AI assistant)
         </h2>
         <p className="text-light-400 text-sm mb-4">
           Start a call and describe the role and level; the assistant may create an interview (ensure it is linked to your account in the assistant settings).
