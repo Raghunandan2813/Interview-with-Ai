@@ -189,7 +189,7 @@ Return a single JSON object with this exact structure (no other fields, no markd
       strengths: object.strengths,
       areasForImporvement: object.areasForImprovement,
       finalAssesment: object.finalAssessment,
-      createdAt: new Date().toString(),
+      createdAt: new Date().toISOString(),
     };
     let feedbackRef;
 

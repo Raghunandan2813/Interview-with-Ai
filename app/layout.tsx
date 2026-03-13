@@ -8,11 +8,12 @@ const monaSans = Mona_Sans({
   subsets: ["latin"],
 });
 
-
-
 export const metadata: Metadata = {
   title: "InterviewPrep",
   description: "Creating an Ai interview prep platform",
+  icons: {
+    icon: "/roboo.png",
+  },
 };
 
 export default function RootLayout({
@@ -22,12 +23,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body
-        className={`${monaSans.className} antialiased  pattern`} 
-      >
-        
+      <link rel="manifest" href="/manifest.json" />
+      <link rel="icon" href="/roboo.png" />
+      <body className={`${monaSans.className} antialiased  pattern`}>
         {children}
-        <Toaster/>
+        <Toaster />
       </body>
     </html>
   );
