@@ -20,9 +20,8 @@ const ProgressChart = ({ data }: ProgressChartProps) => {
   const formattedData = data
     .map((item) => ({
       ...item,
-      displayDate: dayjs(item.date).format("MMM D"),
+      displayDate: dayjs(item.date).format("MMM D, h:mm A"),
     }))
-    .reverse(); // Ensure chronological order if data is sorted desc
 
   if (!formattedData.length) {
     return (

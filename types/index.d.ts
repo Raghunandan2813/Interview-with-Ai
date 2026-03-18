@@ -10,6 +10,11 @@ interface Feedback {
   strengths: string[];
   areasForImprovement: string[];
   finalAssessment: string;
+  behaviorAnalysis?: {
+    confidentScore: number;
+    nervousScore: number;
+    cheatingFlags: number;
+  };
   createdAt: string;
 }
 
@@ -30,6 +35,11 @@ interface CreateFeedbackParams {
   userId: string;
   transcript: { role: string; content: string }[];
   feedbackId?: string;
+  behaviorAnalysis?: {
+    confidentScore: number;
+    nervousScore: number;
+    cheatingFlags: number;
+  };
 }
 
 interface User {

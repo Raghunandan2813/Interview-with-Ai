@@ -1,6 +1,6 @@
 import React from "react";
 import { getCurrentUser } from "@/lib/action/auth.action";
-import { getInterviewsByUserId, getFeedbackByInterviewId } from "@/lib/action/general.action";
+import { getFeedbacksByUserId, getInterviewById } from "@/lib/action/general.action";
 import ProgressChart from "@/components/ProgressChart";
 import InterviewCard from "@/components/InterviewCard";
 
@@ -14,35 +14,39 @@ const Dashboard = async () => {
     );
   }
 
-  const interviews = await getInterviewsByUserId(user.id);
-  
-  // Fetch feedbacks for all finalized interviews 
-  const pastInterviews = (interviews || []).filter(i => i.finalized);
+  const userFeedbacks = (await getFeedbacksByUserId(user.id)) || [];
 
-  const feedbackPromises = pastInterviews.map((i) =>
-    getFeedbackByInterviewId({ interviewId: i.id, userId: user.id })
-  );
+  const interviewPromises = userFeedbacks.map((f) => getInterviewById(f.interviewId));
+  const fetchedInterviews = await Promise.all(interviewPromises);
 
-  const feedbacks = await Promise.all(feedbackPromises);
+  const validPairs = userFeedbacks.map((feedback, index) => {
+    const interview = fetchedInterviews[index];
+    return interview ? { feedback, interview } : null;
+  }).filter(Boolean) as { feedback: any, interview: any }[];
+
+  const pastInterviews = validPairs.map(p => p.interview);
+  const feedbacks = validPairs.map(p => p.feedback);
 
   // Combine interview data with feedback for the chart and statistics
   let totalScoreSum = 0;
   let validFeedbackCount = 0;
 
-  const chartData = pastInterviews
+  const chartDataRaw = pastInterviews
     .map((interview, index) => {
       const feedback = feedbacks[index];
       if (feedback?.totalScore) {
         totalScoreSum += feedback.totalScore;
         validFeedbackCount++;
         return {
-          date: interview.createdAt,
+          date: feedback.createdAt,
           score: feedback.totalScore,
         };
       }
       return null;
     })
     .filter((d) => d !== null) as { date: string; score: number }[];
+
+  const chartData = [...chartDataRaw].reverse();
 
   const averageScore = validFeedbackCount > 0 
     ? Math.round(totalScoreSum / validFeedbackCount) 
@@ -84,7 +88,7 @@ const Dashboard = async () => {
             pastInterviews.map((interview, index) => (
               <InterviewCard 
                 {...interview} 
-                key={interview.id} 
+                key={feedbacks[index].id} 
                 feedback={feedbacks[index]} 
               />
             ))

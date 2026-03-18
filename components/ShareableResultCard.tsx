@@ -3,6 +3,7 @@
 import React, { useRef, useState } from "react";
 import { toPng } from "html-to-image";
 import { Button } from "./ui/button";
+import LocalTime from "./LocalTime";
 
 interface ShareableResultCardProps {
   score: number;
@@ -68,7 +69,7 @@ const ShareableResultCard = ({
         </p>
 
         <p className="z-10 mt-4 text-xs text-light-600 font-mono">
-          {date}
+          <LocalTime date={date} />
         </p>
       </div>
 

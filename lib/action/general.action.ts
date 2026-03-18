@@ -20,6 +20,7 @@ export async function getInterviewsByUserId(
     ...doc.data(),
   })) as Interview[];
 }
+
 export async function getLatestInterviews(
   params: GetLatestInterviewsParams,
 ): Promise<Interview[] | null> {
@@ -129,7 +130,7 @@ export async function createInterview(
 }
 
 export async function createFeedback(params: CreateFeedbackParams) {
-  const { interviewId, userId, transcript, feedbackId } = params;
+  const { interviewId, userId, transcript, feedbackId, behaviorAnalysis } = params;
   try {
     const formattedTranscript = transcript
       .map(
@@ -137,6 +138,14 @@ export async function createFeedback(params: CreateFeedbackParams) {
           `- ${sentence.role}: ${sentence.content}\n`,
       )
       .join("");
+      
+    const behaviorContext = behaviorAnalysis 
+      ? `\nBehavioral Analysis during interview:
+- Confidence metric: ${behaviorAnalysis.confidentScore}%
+- Nervousness metric: ${behaviorAnalysis.nervousScore}%
+- Focus lost / suspicious activity flags: ${behaviorAnalysis.cheatingFlags}
+Please directly address the user's emotional state, confidence, and focus in your final assessment and areas for improvement.`
+      : "";
 
     const groqProvider = createGroq({ apiKey: process.env.GROQ_API_KEY! });
 
@@ -144,6 +153,7 @@ export async function createFeedback(params: CreateFeedbackParams) {
       model: groqProvider("llama-3.3-70b-versatile"),
       system: `You are a professional interviewer analyzing a mock interview. Your task is to evaluate the candidate based on structured categories. Respond with only valid JSON, no markdown or extra text.`,
       prompt: `Analyze this mock interview transcript and score the candidate. Be thorough and detailed. Don't be lenient; if there are mistakes or areas for improvement, point them out.
+${behaviorContext}
 
 Transcript:
 ${formattedTranscript}
@@ -189,6 +199,7 @@ Return a single JSON object with this exact structure (no other fields, no markd
       strengths: object.strengths,
       areasForImporvement: object.areasForImprovement,
       finalAssesment: object.finalAssessment,
+      behaviorAnalysis: behaviorAnalysis || null,
       createdAt: new Date().toISOString(),
     };
     let feedbackRef;
@@ -229,8 +240,32 @@ export async function getFeedbackByInterviewId(
   return {
     id: feedbackDoc.id,
     ...data,
+    behaviorAnalysis: data.behaviorAnalysis || null,
     categoryScores: data.categoryScores ?? data.categoryScore,
     areasForImprovement: data.areasForImprovement ?? data.areasForImporvement,
     finalAssessment: data.finalAssessment ?? data.finalAssesment,
   } as Feedback;
+}
+
+export async function getFeedbacksByUserId(userId: string): Promise<Feedback[] | null> {
+  const querySnapshot = await db
+    .collection("feedback")
+    .where("userId", "==", userId)
+    .get();
+
+  if (querySnapshot.empty) return null;
+
+  const feedbacks = querySnapshot.docs.map((doc) => {
+    const data = doc.data() as Record<string, unknown>;
+    return {
+      id: doc.id,
+      ...data,
+      behaviorAnalysis: data.behaviorAnalysis || null,
+      categoryScores: data.categoryScores ?? data.categoryScore,
+      areasForImprovement: data.areasForImprovement ?? data.areasForImporvement,
+      finalAssessment: data.finalAssessment ?? data.finalAssesment,
+    };
+  }) as Feedback[];
+
+  return feedbacks.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
