@@ -85,6 +85,12 @@ export async function setSessionCookie(idToken : string){
 
 }
 
+export async function signOut() {
+  const cookieStore = await cookies();
+  cookieStore.delete('session');
+  return { success: true };
+}
+
 
 export async function getCurrentUser() : Promise<User | null> {
     const cookieStore = await cookies();
@@ -115,6 +121,4 @@ export async function isAuthenticated(){
     const user = await getCurrentUser();
     console.log(user)
     return !!user; 
-    
 }
-

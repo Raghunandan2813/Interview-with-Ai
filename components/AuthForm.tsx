@@ -9,13 +9,13 @@ import Image from "next/image";
 import { toast } from "sonner";
 import { Form } from "@/components/ui/form";
 
+import { motion } from "framer-motion";
 import { error } from "console";
 import FormField from "./FormField";
 import { useRouter } from "next/navigation";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, UserCredential } from "firebase/auth";
 import { auth } from "@/firebase/client";
 import { signUp , signIn} from "@/lib/action/auth.action";
-import { UserCredential } from "firebase/auth";
 const authFormSchema = (type: FormType) => {
   return z.object({
     name: type === "sign-up" ? z.string().min(3) : z.string().optional(),
@@ -92,10 +92,46 @@ const AuthForm = ({ type }: AuthFormProps) => {
       toast.error("There was an error");
     }
   }
+  async function handleGoogleSignIn() {
+    try {
+      const provider = new GoogleAuthProvider();
+      const userCredential = await signInWithPopup(auth, provider);
+      
+      const { uid, displayName, email } = userCredential.user;
+      
+      // Attempt to sign up (if they exist, this fails gracefully based on our action)
+      await signUp({
+        uid,
+        name: displayName || "User",
+        email: email || "",
+        password: "", // Not used for Google Auth, but part of schema
+      });
+
+      // Get ID token and establish session
+      const idToken = await userCredential.user.getIdToken();
+      if (!idToken) {
+        toast.error("Google Sign-In failed to get token.");
+        return;
+      }
+      
+      await signIn({ email: email || "", idToken });
+      toast.success("Signed in with Google successfully.");
+      router.push("/");
+    } catch (error) {
+      console.error(error);
+      toast.error("There was an error with Google Sign-In.");
+    }
+  }
+
   const isSignin = type === "sign-in";
   return (
-    <div className="card-border lg:min-w-[480px] flex flex-col overflow-hidden">
-      <div className="flex flex-col gap-6 fill-card-foreground py-10 px-8">
+    <motion.div 
+      initial={{ opacity: 0, y: -50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="card-border w-full sm:w-[480px] flex flex-col overflow-hidden max-sm:mx-4"
+    >
+      <div className="flex flex-col gap-6 fill-card-foreground py-10 px-6 sm:px-8">
         <div className="flex flex-col items-center gap-3 text-center">
           <Image src="/roboo.png" alt="logo" height={36} width={42} className="shrink-0" />
           <p className="text-sm font-medium text-primary-200">Boost Your Prep With AI</p>
@@ -138,6 +174,31 @@ const AuthForm = ({ type }: AuthFormProps) => {
             </Button>
           </form>
         </Form>
+        
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-white/10" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-dark-200 px-2 text-light-400">Or continue with</span>
+          </div>
+        </div>
+
+        <Button
+          variant="outline"
+          type="button"
+          onClick={handleGoogleSignIn}
+          className="w-full bg-white text-dark-100 hover:bg-gray-200 hover:text-dark-100 border-none flex items-center gap-2"
+        >
+          <svg width="18" height="18" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z" />
+            <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z" />
+            <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z" />
+            <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
+          </svg>
+          Google
+        </Button>
+
         <p className="text-center text-sm text-light-400 pt-1">
           {isSignin ? "No account yet?" : "Already have an account?"}
           <Link
@@ -148,7 +209,7 @@ const AuthForm = ({ type }: AuthFormProps) => {
           </Link>
         </p>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

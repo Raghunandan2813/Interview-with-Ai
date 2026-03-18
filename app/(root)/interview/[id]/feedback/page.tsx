@@ -11,6 +11,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/action/auth.action";
 import DownloadFeedbackButton from "@/components/DownloadFeedbackButton";
+import ShareableResultCard from "@/components/ShareableResultCard";
+import ShareButtons from "@/components/ShareButtons";
 
 
 
@@ -28,6 +30,10 @@ const Feedback = async ({ params }: RouteParams ) => {
     userId: user?.id!,
   });
 
+  const formattedDate = feedback?.createdAt
+    ? dayjs(feedback.createdAt).format("MMM D, YYYY h:mm A")
+    : "N/A";
+
   return (
   
     <section className="section-feedback">
@@ -35,6 +41,18 @@ const Feedback = async ({ params }: RouteParams ) => {
         <h1 className="text-2xl font-bold text-light-100 tracking-tight">
           Feedback — <span className="capitalize text-primary-200">{interview.role}</span> Interview
         </h1>
+      </div>
+
+      <div className="flex flex-col items-center gap-4 mb-8">
+        <ShareableResultCard
+          score={feedback?.totalScore || 0}
+          role={interview.role}
+          date={formattedDate}
+        />
+        <ShareButtons
+          score={feedback?.totalScore || 0}
+          role={interview.role}
+        />
       </div>
 
       <div className="flex flex-row flex-wrap justify-center gap-6 mb-8">
