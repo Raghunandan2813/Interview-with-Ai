@@ -251,6 +251,7 @@ const handleDisconnect = async ()=>{
                   audio={false}
                   ref={webcamRef}
                   mirrored={true}
+                  videoConstraints={{ facingMode: "user" }}
                   onUserMediaError={() => setCamError(true)}
                   className="rounded-2xl object-cover size-[120px] ring-2 ring-white/10"
                 />
