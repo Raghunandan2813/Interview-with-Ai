@@ -50,11 +50,11 @@ const ShareableResultCard = ({
         <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-primary-200/20 blur-3xl"></div>
         <div className="absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-indigo-500/20 blur-3xl"></div>
 
-        <h2 className="z-10 text-3xl font-extrabold tracking-tight text-white mb-2">
+        <h2 className="z-10 text-2xl sm:text-3xl font-extrabold tracking-tight text-white mb-2 leading-none">
           {appName}
         </h2>
 
-        <div className="z-10 my-6 flex h-32 w-32 flex-col items-center justify-center rounded-full border-4 border-primary-200 bg-dark-100 shadow-lg shadow-primary-200/20">
+        <div className="z-10 my-4 sm:my-6 flex h-28 w-28 sm:h-32 sm:w-32 flex-col items-center justify-center rounded-full border-4 border-primary-200 bg-dark-100 shadow-lg shadow-primary-200/20">
           <span className="text-4xl font-bold text-primary-200">{score}</span>
           <span className="text-sm font-medium text-light-400">/100</span>
         </div>

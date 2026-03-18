@@ -5,7 +5,7 @@ export default function DownloadFeedbackButton({ feedback } : any) {
   return (
     <button
       onClick={() => downloadFeedback(feedback)}
-     className="btn-secondary flex-1"
+     className="btn-secondary flex-1 max-sm:w-full"
     >
       Download Feedback PDF
     </button>
