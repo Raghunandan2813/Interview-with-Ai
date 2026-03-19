@@ -225,7 +225,7 @@
     }
 
     .card-border {
-      @apply rounded-2xl flex-1 sm:basis-1/2 w-full h-[380px] max-md:hidden border border-white/10 bg-dark-200/80 p-0.5 overflow-hidden;
+      @apply rounded-2xl flex-1 sm:basis-1/2 w-full h-[380px] border border-white/10 bg-dark-200/80 p-0.5 overflow-hidden;
     }
 
     .card-content {
