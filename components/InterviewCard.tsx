@@ -1,3 +1,4 @@
+"use client"
 import React from 'react'
 import dayjs from 'dayjs'
 import Image from 'next/image';
@@ -5,23 +6,26 @@ import { getRandomInterviewCover } from '@/lib/utils';
 import { Button } from './ui/button';
 import Link from 'next/link';
 import DisplayTechIcons from './DisplayTechIcons';
-
+import { motion } from 'framer-motion';
 
 const interviewCard = ({id, userId, role , type, techstack, createdAt, feedback}: InterviewCardProps & { feedback?: any }) => {
 
   const normalizedType = /mix/gi.test(type) ? 'Mixed' : type;
   const formattedDate = dayjs(feedback?.createdAt || createdAt || Date.now()).format('MMM D, YYYY')
 
-
   return (
-    <div className="card-border w-[340px] max-sm:w-full min-h-[320px]">
+    <motion.div 
+      whileHover={{ scale: 1.02, y: -5 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      className="card-border w-[340px] max-sm:w-full min-h-[320px]"
+    >
       <div className="card-interview">
         <div className="flex flex-col">
           <div className="absolute top-0 right-0 w-fit px-3 py-1.5 rounded-bl-xl rounded-tr-2xl bg-primary-300/90 text-dark-100">
             <p className="badge-text text-xs">{normalizedType}</p>
           </div>
           <Image
-            src={getRandomInterviewCover()}
+            src={getRandomInterviewCover(id || role)}
             alt="cover"
             width={72}
             height={72}
@@ -45,7 +49,7 @@ const interviewCard = ({id, userId, role , type, techstack, createdAt, feedback}
               "You haven't taken the interview yet. Take it now to improve your skills."}
           </p>
         </div>
-        <div className="flex flex-row justify-between items-end gap-3">
+        <div className="flex flex-row justify-between items-end gap-3 mt-4">
           <DisplayTechIcons techStack={techstack} />
           <Button className="btn-primary shrink-0" asChild>
             <Link href={feedback ? `/interview/${id}/feedback` : `/interview/${id}`}>
@@ -54,7 +58,7 @@ const interviewCard = ({id, userId, role , type, techstack, createdAt, feedback}
           </Button>
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }
  

@@ -1,11 +1,10 @@
-import Agent from "@/components/Agent";
 import DisplayTechIcons from "@/components/DisplayTechIcons";
 import { getCurrentUser } from "@/lib/action/auth.action";
 import { getInterviewById } from "@/lib/action/general.action";
 import { getRandomInterviewCover } from "@/lib/utils";
 import Image from "next/image";
 import { redirect } from "next/navigation";
-import React from "react";
+import AgentWrapper from "@/components/AgentWrapper";
 
 const Page = async ({ params }: RouteParams) => {
   const { id } = await params;
@@ -35,13 +34,13 @@ const Page = async ({ params }: RouteParams) => {
           {interview.type}
         </span>
       </div>
-      <Agent
-        userName={user?.name || ""}
-        userId={user?.id}
-        interviewId={id}
-        type="interview"
-        questions={interview.questions}
-      />
+            <AgentWrapper
+              userName={user?.name}
+              userId={user?.id}
+              interviewId={id}
+              type="interview"
+              questions={interview?.questions}
+            />
     </div>
   );
 };
